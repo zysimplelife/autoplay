@@ -11,7 +11,6 @@ object App {
   def main(args: Array[String]) {
     val player = new PlayContorller();
     val configReader = new ConfigReader();
-    player.runPlayer(configReader.getList());
-
+    configReader.reloadConfig();
   }
 }
