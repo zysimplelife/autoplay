@@ -17,21 +17,21 @@ import java.util.Date
  */
 class ConfigReader() {
 
-  final val PATH_SONG = "song"
-  final val PATH_LIST = "playlist"
-  final val ATTR_LIST_DATE = "@date"
+  def  PATH_SONG = "song"
+  def  PATH_LIST = "playlist"
+  def  ATTR_LIST_DATE = "@date"
 
   /**
    * default construct read config in @USER_HOME/.autoplayer
    */
-  var config = xml.XML.loadFile(initConfigs());
-  var lists =  List[PlayList]();
+  var config: scala.xml.Node = _;
+  var lists: List[PlayList] = _;
 
   /**
    * Get a list that should be played today
    */
   def getTodayPlayList() = {
-    val result = for(playlist <- lists) yield {
+    val result = for (playlist <- lists) yield {
       val sf = new SimpleDateFormat("MM-dd");
       val now = new Date();
       val listTime = sf.format(playlist.Data)
@@ -40,7 +40,7 @@ class ConfigReader() {
     result.toList
   }
 
-  def initConfigs():File={
+  def initConfigs(): File = {
     val userHome: String = getUserHome();
     val configDirectory: File = getOrCreateConfigDirectory(userHome);
     return getOrCreateConfigfile(configDirectory)
@@ -50,20 +50,21 @@ class ConfigReader() {
    * reload config context
    * @param file
    */
-  def reloadConfig(file:File):Unit={
+  def reloadConfig(file: File): Unit = {
+    lists = List();
     config = xml.XML.loadFile(file);
-    val playLists = config \  PATH_LIST;
-    playLists.foreach(item=>{
+    val playLists = config \ PATH_LIST;
+    playLists.foreach(item => {
       val dateTime = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").parse((item \ ATTR_LIST_DATE).toString());
       val songs = getSongList(item)
-      lists ::= new PlayList(dateTime,songs)
+      lists ::= new PlayList(dateTime, songs)
     })
   }
 
   /**
    * reload config with default config file
    */
-  def reloadConfig():Unit={
+  def reloadConfig(): Unit = {
     reloadConfig(initConfigs())
   }
 
@@ -72,14 +73,17 @@ class ConfigReader() {
    * name rule =  filePath = "init" + configName
    * @param file
    */
-  private def copyInitConfigFile(file:File)={
-      val initFile = ClassLoader.getSystemResource("init"+file.getName()).getFile();
-      new FileOutputStream(file) getChannel() transferFrom(
-         new FileInputStream(initFile) getChannel, 0, Long.MaxValue );
+  private def copyInitConfigFile(file: File) = {
+    val initFile = ClassLoader.getSystemResource("init" + file.getName()).getFile();
+    val output = new FileOutputStream(file);
+    val input = new FileInputStream(initFile)
+    output getChannel() transferFrom(input getChannel, 0, Long.MaxValue);
+    output.close();
+    input.close();
   }
 
-  private def getSongList(listTag:NodeSeq): List[Song] = {
-    val songs = listTag \  PATH_SONG;
+  private def getSongList(listTag: NodeSeq): List[Song] = {
+    val songs = listTag \ PATH_SONG;
     val list = for (s <- songs) yield (new Song(s.text.toString()));
     list.toList;
   }
