@@ -11,7 +11,7 @@ import java.sql.Time
  * To change this template use File | Settings | File Templates.
  * This class represents for Playlist
  */
-class PlayList(data:Date,songs:List[Song]) {
-  def Data = data;
+class PlayList(date: Date, songs: List[Song]) {
+  def Date = date;
   def Songs = songs;
 }

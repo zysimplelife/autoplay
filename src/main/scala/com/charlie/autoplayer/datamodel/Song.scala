@@ -11,7 +11,7 @@ import java.io.File
  * Time: 下午9:15
  * To change this template use File | Settings | File Templates.
  */
-class Song(path:String) {
+class Song(path: String) {
   def Path = path;
 
 }

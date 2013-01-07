@@ -5,8 +5,10 @@ import org.scalatest.junit.JUnitRunner
 import org.scalatest.{BeforeAndAfterEachFunctions, BeforeAndAfter, FunSuite}
 import java.util
 import java.io.File
+import util.Date
 import xml.transform.{RuleTransformer, RewriteRule}
 import xml.{NodeSeq, Text, Elem, Node}
+import java.text.SimpleDateFormat
 
 /**
  * Created with IntelliJ IDEA.
@@ -58,7 +60,26 @@ class TestConfigReader extends FunSuite with BeforeAndAfterEachFunctions  {
   }
 
 
+  test("Get today play list,if the config is correct,then getTodayPlaylist will get at list one element") {
+    reader.initConfigs();
+    var config = getConfigFile();
+    var configXml =  xml.XML.loadFile(config);
+    val newConfigXml = modifytoTodayConfig(configXml);
+    scala.xml.XML.save(config.getAbsolutePath(),newConfigXml.last);
+    reader.reloadConfig();
+    val todaylist = reader.getTodayPlayList();
+    println(todaylist.last.Date)
+    assert(!todaylist.isEmpty);
 
+
+  }
+
+
+
+
+  /**************************************************************/
+  /*   Utils Functions                                          */
+  /**************************************************************/
   private def modifyConfig(node:Node) = {
     object t extends RewriteRule {
       override def transform(n: Node): Seq[Node] = n match {
@@ -69,12 +90,33 @@ class TestConfigReader extends FunSuite with BeforeAndAfterEachFunctions  {
     new RuleTransformer(t).transform(node)
   }
 
+
   private def isModifySuccessfully(node:Node):Boolean = {
-    val lists = node \\ new ConfigReader().PATH_LIST
+    val lists = node \\ Const.PATH_LIST
     lists.foreach(l =>{
       if ((l \ "@date").text == "2099-01-01 00:00:00") return false
     })
     return true;
+  }
+
+  private def getTodayString():String={
+    val sf = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+    val now = sf.format(new Date());
+    return  now
+  }
+
+  private def modifytoTodayConfig(node:Node) = {
+    object t extends RewriteRule {
+      override def transform(n: Node): Seq[Node] = n match {
+        case e : Elem if (e.label == Const.PATH_ROOT) => {
+          val node = <playlist date={getTodayString()}></playlist>;
+          val newChild = node map { case e:Elem => e.copy(label="playlist") }
+          e.copy(child = newChild)
+        }
+        case _ => n
+      }
+    }
+    new RuleTransformer(t).transform(node)
   }
 
   private def getConfigFile():File = {

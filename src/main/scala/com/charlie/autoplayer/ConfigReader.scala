@@ -7,6 +7,15 @@ import xml.NodeSeq
 import java.net.URL
 import java.util.Date
 
+object Const{
+  def PATH_SONG = "song"
+
+  def PATH_LIST = "playlist"
+
+  def PATH_ROOT = "autoplay"
+
+  def ATTR_LIST_DATE = "@date"
+}
 
 /**
  * Created with IntelliJ IDEA.
@@ -17,9 +26,7 @@ import java.util.Date
  */
 class ConfigReader() {
 
-  def  PATH_SONG = "song"
-  def  PATH_LIST = "playlist"
-  def  ATTR_LIST_DATE = "@date"
+
 
   /**
    * default construct read config in @USER_HOME/.autoplayer
@@ -28,16 +35,17 @@ class ConfigReader() {
   var lists: List[PlayList] = _;
 
   /**
-   * Get a list that should be played today
+   * Get a list that should be played today.
    */
-  def getTodayPlayList() = {
+  def getTodayPlayList():List[PlayList] = {
+    val sf = new SimpleDateFormat("MM-dd");
+    val now = sf.format(new Date());
+
     val result = for (playlist <- lists) yield {
-      val sf = new SimpleDateFormat("MM-dd");
-      val now = new Date();
-      val listTime = sf.format(playlist.Data)
+      val listTime = sf.format(playlist.Date)
       if (now.equals(listTime)) playlist
     }
-    result.toList
+    result.asInstanceOf[List[PlayList]]
   }
 
   def initConfigs(): File = {
@@ -53,9 +61,9 @@ class ConfigReader() {
   def reloadConfig(file: File): Unit = {
     lists = List();
     config = xml.XML.loadFile(file);
-    val playLists = config \ PATH_LIST;
+    val playLists = config \ Const.PATH_LIST;
     playLists.foreach(item => {
-      val dateTime = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").parse((item \ ATTR_LIST_DATE).toString());
+      val dateTime = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").parse((item \ Const.ATTR_LIST_DATE).toString());
       val songs = getSongList(item)
       lists ::= new PlayList(dateTime, songs)
     })
@@ -83,7 +91,7 @@ class ConfigReader() {
   }
 
   private def getSongList(listTag: NodeSeq): List[Song] = {
-    val songs = listTag \ PATH_SONG;
+    val songs = listTag \ Const.PATH_SONG;
     val list = for (s <- songs) yield (new Song(s.text.toString()));
     list.toList;
   }
