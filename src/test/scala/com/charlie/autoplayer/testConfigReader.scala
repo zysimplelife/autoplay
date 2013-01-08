@@ -26,20 +26,20 @@ class TestConfigReader extends FunSuite with BeforeAndAfterEachFunctions  {
   }
 
   test("Create Initial xml file if it is not existed") {
-     var config = getConfigFile();
+     var config = Utils.getConfigFile();
      // delete configure file before init
      if(config.exists()){
        assert(config.delete());
      }
     reader.initConfigs();
-    config = getConfigFile();
+    config = Utils.getConfigFile();
     assert(config.exists());
     config.deleteOnExit();
   }
 
   test("if the config file is existed,it won't rewrite it by default value") {
     reader.initConfigs();
-    var config = getConfigFile();
+    var config = Utils.getConfigFile();
     if(!config.exists()){
       assert(false);
     }
@@ -62,7 +62,7 @@ class TestConfigReader extends FunSuite with BeforeAndAfterEachFunctions  {
 
   test("Get today play list,if the config is correct,then getTodayPlaylist will get at list one element") {
     reader.initConfigs();
-    var config = getConfigFile();
+    var config = Utils.getConfigFile();
     var configXml =  xml.XML.loadFile(config);
     val newConfigXml = modifytoTodayConfig(configXml);
     scala.xml.XML.save(config.getAbsolutePath(),newConfigXml.last);
@@ -70,6 +70,7 @@ class TestConfigReader extends FunSuite with BeforeAndAfterEachFunctions  {
     val todaylist = reader.getTodayPlayList();
     println(todaylist.last.Date)
     assert(!todaylist.isEmpty);
+    assert(todaylist.last.Songs.length == 2)
 
 
   }
@@ -99,17 +100,14 @@ class TestConfigReader extends FunSuite with BeforeAndAfterEachFunctions  {
     return true;
   }
 
-  private def getTodayString():String={
-    val sf = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
-    val now = sf.format(new Date());
-    return  now
-  }
-
   private def modifytoTodayConfig(node:Node) = {
     object t extends RewriteRule {
       override def transform(n: Node): Seq[Node] = n match {
         case e : Elem if (e.label == Const.PATH_ROOT) => {
-          val node = <playlist date={getTodayString()}></playlist>;
+          val node = <playlist date={Utils.getTodayString()}>
+                        <song>C:\Users\Public\Music\Sample Music\Amanda.wma</song>
+                        <song>C:\Users\Public\Music\Sample Music\Amanda.wma</song>
+                      </playlist>;
           val newChild = node map { case e:Elem => e.copy(label="playlist") }
           e.copy(child = newChild)
         }
@@ -118,15 +116,5 @@ class TestConfigReader extends FunSuite with BeforeAndAfterEachFunctions  {
     }
     new RuleTransformer(t).transform(node)
   }
-
-  private def getConfigFile():File = {
-    val userHome = System.getProperty("user.home");
-    if (userHome.isEmpty) {
-      throw new IllegalStateException("user.home==null");
-    }
-    val configPath = userHome + File.separator + ".autoplay" + File.separator + "configs.xml";
-    new File(configPath);
-  }
-
 
 }

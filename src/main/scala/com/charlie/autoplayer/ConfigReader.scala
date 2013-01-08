@@ -1,6 +1,6 @@
 package com.charlie.autoplayer
 
-import com.charlie.autoplay.datamodel.{PlayList, Song}
+import datamodel.{PlayList, Song}
 import java.io.{FileInputStream, FileOutputStream, File}
 import java.text.SimpleDateFormat
 import xml.NodeSeq
@@ -25,15 +25,11 @@ object Const{
  * To change this template use File | Settings | File Templates.
  */
 class ConfigReader() {
-
-
-
   /**
    * default construct read config in @USER_HOME/.autoplayer
    */
   var config: scala.xml.Node = _;
   var lists: List[PlayList] = _;
-
   /**
    * Get a list that should be played today.
    */
@@ -58,7 +54,7 @@ class ConfigReader() {
    * reload config context
    * @param file
    */
-  def reloadConfig(file: File): Unit = {
+  def reloadConfig(file: File): ConfigReader = {
     lists = List();
     config = xml.XML.loadFile(file);
     val playLists = config \ Const.PATH_LIST;
@@ -67,13 +63,15 @@ class ConfigReader() {
       val songs = getSongList(item)
       lists ::= new PlayList(dateTime, songs)
     })
+    return this;
   }
 
   /**
    * reload config with default config file
    */
-  def reloadConfig(): Unit = {
+  def reloadConfig(): ConfigReader= {
     reloadConfig(initConfigs())
+    return this;
   }
 
   /**

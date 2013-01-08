@@ -1,5 +1,7 @@
 package com.charlie.autoplayer
 
+import java.util.Date
+
 /**
  * Created with IntelliJ IDEA.
  * User: ezhayog
@@ -9,8 +11,10 @@ package com.charlie.autoplayer
  */
 object App {
   def main(args: Array[String]) {
-    val player = new PlayContorller();
-    val configReader = new ConfigReader();
-    configReader.reloadConfig();
+    val reader = new ConfigReader().reloadConfig();
+    val timerc = new TimerController(reader);
+    println("Now=" + new Date() + " Schedule=" + reader.getTodayPlayList().last.Date);
+    timerc.startSchedule();
+    println("Done")
   }
 }

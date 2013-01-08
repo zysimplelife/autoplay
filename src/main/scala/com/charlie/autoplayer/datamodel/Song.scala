@@ -1,4 +1,4 @@
-package com.charlie.autoplayer.com.charlie.autoplay.datamodel
+package com.charlie.autoplayer.datamodel
 
 import java.net.URL
 import java.io.File

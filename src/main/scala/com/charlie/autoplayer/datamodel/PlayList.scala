@@ -1,4 +1,4 @@
-package com.charlie.autoplayer.com.charlie.autoplay.datamodel
+package com.charlie.autoplayer.datamodel
 
 import java.util.Date
 import java.sql.Time
@@ -14,4 +14,5 @@ import java.sql.Time
 class PlayList(date: Date, songs: List[Song]) {
   def Date = date;
   def Songs = songs;
+
 }

@@ -8,24 +8,35 @@ package com.charlie.autoplayer
  * To change this template use File | Settings | File Templates.
  */
 
+
+import datamodel.Song
 import java.io.{FileNotFoundException, File}
 import java.lang.InterruptedException
+import java.util.TimerTask
 
-class PlayContorller {
+class PlayContorller(mp3List: List[Song]) extends TimerTask{
   final val cmdPlayerPath = ClassLoader.getSystemResource("cmdmp3.exe").toURI();
 
   final def errorCantFound(path: String) = "Can't found mp3 " + path
 
   final def errorCantFoundPlayer(path: String) = "Can't found cmd mp3 player " + path
 
-  def runPlayer(mp3List: List[String]): Unit = {
-    mp3List.foreach(mp3Path => {
+  def MP3List = mp3List;
+
+  private def runPlayer(mp3List: List[Song]): Unit = {
+    mp3List.foreach(song => {
+      println(song.Path)
       try {
-        runPlayer(mp3Path);
+        runPlayer(song.Path);
       } catch {
         case ex: FileNotFoundException => println(ex.getMessage);
       }
     })
+  }
+
+  def run(){
+    runPlayer(MP3List);
+    this.cancel();
   }
 
   /**
@@ -52,7 +63,7 @@ class PlayContorller {
     } catch {
       case ex: InterruptedException => println("interrupted") //TODO
     }
-
+    println(pid.exitValue());
     //TODO: need test exit code.
   }
 }
