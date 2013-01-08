@@ -12,18 +12,16 @@ package com.charlie.autoplayer
 import datamodel.Song
 import java.io.{FileNotFoundException, File}
 import java.lang.InterruptedException
-import java.util.TimerTask
 
-class PlayContorller(mp3List: List[Song]) extends TimerTask{
+class PlayContorller{
   final val cmdPlayerPath = ClassLoader.getSystemResource("cmdmp3.exe").toURI();
 
   final def errorCantFound(path: String) = "Can't found mp3 " + path
 
   final def errorCantFoundPlayer(path: String) = "Can't found cmd mp3 player " + path
 
-  def MP3List = mp3List;
 
-  private def runPlayer(mp3List: List[Song]): Unit = {
+  def runPlayer(mp3List: List[Song]): Unit = {
     mp3List.foreach(song => {
       println(song.Path)
       try {
@@ -32,11 +30,6 @@ class PlayContorller(mp3List: List[Song]) extends TimerTask{
         case ex: FileNotFoundException => println(ex.getMessage);
       }
     })
-  }
-
-  def run(){
-    runPlayer(MP3List);
-    this.cancel();
   }
 
   /**

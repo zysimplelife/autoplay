@@ -1,6 +1,7 @@
 package com.charlie.autoplayer
 
-import java.util.{Date, Timer}
+import datamodel.Song
+import java.util.{TimerTask, Date, Timer}
 
 /**
  * Created with IntelliJ IDEA.
@@ -10,11 +11,17 @@ import java.util.{Date, Timer}
  * To change this template use File | Settings | File Templates.
  */
 class TimerController(reader:ConfigReader) {
-  val timer = new Timer();
   def startSchedule():Unit = {
     reader.getTodayPlayList().foreach(list=>{
-      val schedule = list.Date
-      timer.schedule(new PlayContorller(list.Songs),schedule)
+      val timer = new Timer();
+      class PlayTask extends TimerTask{
+        val player = new PlayContorller();
+        def run(){
+          player.runPlayer(list.Songs);
+          timer.cancel();
+        }
+      }
+      timer.schedule(new PlayTask() ,list.Date)
     })
   }
 
