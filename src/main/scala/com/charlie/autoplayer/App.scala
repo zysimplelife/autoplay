@@ -13,10 +13,6 @@ object App {
   def main(args: Array[String]) {
     val reader = new ConfigReader().reloadConfig();
     val timerc = new TimerController(reader);
-    reader.getTodayPlayList().filter(l=>{l.isInstanceOf[datamodel.PlayList]}).foreach(l=>{
-      println("Now=" + new Date() + " Schedule=" + l.Date);
-    })
     timerc.startSchedule();
-    println("Done")
   }
 }

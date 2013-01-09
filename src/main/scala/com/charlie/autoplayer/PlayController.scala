@@ -12,8 +12,9 @@ package com.charlie.autoplayer
 import datamodel.Song
 import java.io.{FileNotFoundException, File}
 import java.lang.InterruptedException
+import grizzled.slf4j.Logging
 
-class PlayContorller{
+class PlayController extends Logging{
   final val cmdPlayerPath = ClassLoader.getSystemResource("cmdmp3.exe").toURI();
 
   final def errorCantFound(path: String) = "Can't found mp3 " + path
@@ -23,11 +24,10 @@ class PlayContorller{
 
   def runPlayer(mp3List: List[Song]): Unit = {
     mp3List.foreach(song => {
-      println(song.Path)
       try {
-        runPlayer(song.Path);
+        playAudioFile(song.Path);
       } catch {
-        case ex: FileNotFoundException => println(ex.getMessage);
+        case ex:FileNotFoundException => info("skip audio file " + song.Path);
       }
     })
   }
@@ -38,25 +38,35 @@ class PlayContorller{
    * http://www.mailsend-online.com/blog/a-command-line-mp3-player-for-windows.html
    * @param file
    */
-  def runPlayer(file: String): Unit = {
+  def playAudioFile(file: String): Unit = {
     //check mp3 file exist
+    info("Going to play audio file " + file)
     val f = new File(file);
-    if (!f.exists())
-      throw new FileNotFoundException(errorCantFound(f.getAbsolutePath()));
+    debug("audio file exists:" + f.exists());
+    if (!f.exists()) {
+      val errorMsg = errorCantFound(f.getAbsolutePath());
+      warn(errorMsg)
+      throw new FileNotFoundException(errorMsg);
+    }
 
-    //check mp3 player file exist
+    //check if mp3 player file exist
     val cmdPlayer = new File(cmdPlayerPath);
-    if (!cmdPlayer.exists())
-      throw new FileNotFoundException(errorCantFound(cmdPlayer.getAbsolutePath()));
+    if (!cmdPlayer.exists()) {
+      val errorMsg = errorCantFound(cmdPlayer.getAbsolutePath());
+      throw new FileNotFoundException(errorMsg);
+    }
 
     // try to play this mp3
     val pid = Runtime.getRuntime().exec(cmdPlayer.getAbsolutePath() + " \"" + f.getAbsolutePath() + "\"");
     try {
       pid.waitFor();
     } catch {
-      case ex: InterruptedException => println("interrupted") //TODO
+      case ex: InterruptedException => //TODO
     }
-    println(pid.exitValue());
+    pid.exitValue() match {
+      case 0 => info("Successfully to play audio file " +  file);
+      case _ => info("Exception found when playing audio file " +  file)
+    }
     //TODO: need test exit code.
   }
 }

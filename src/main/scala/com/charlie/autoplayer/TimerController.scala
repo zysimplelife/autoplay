@@ -15,7 +15,7 @@ class TimerController(reader:ConfigReader) {
     reader.getTodayPlayList().foreach(list=>{
       val timer = new Timer();
       class PlayTask extends TimerTask{
-        val player = new PlayContorller();
+        val player = new PlayController();
         def run(){
           player.runPlayer(list.Songs);
           timer.cancel();

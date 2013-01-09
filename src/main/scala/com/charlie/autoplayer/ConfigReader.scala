@@ -1,20 +1,22 @@
 package com.charlie.autoplayer
 
 import datamodel.{PlayList, Song}
-import java.io.{FileNotFoundException, FileInputStream, FileOutputStream, File}
+import java.io.{FileNotFoundException, FileOutputStream, File}
 import java.text.SimpleDateFormat
 import xml.NodeSeq
-import java.net.URL
 import java.util.Date
+import grizzled.slf4j.Logging
+
+
 
 object Const {
   def PATH_SONG = "song"
-
   def PATH_LIST = "playlist"
-
   def PATH_ROOT = "autoplay"
-
   def ATTR_LIST_DATE = "@date"
+
+  def CONFIG_FILE_NAME = "Configs.xml"
+  def CONFIG_FILE_DIR = ".autoplay"
 }
 
 /**
@@ -24,13 +26,12 @@ object Const {
  * Time: 3:09 PM
  * To change this template use File | Settings | File Templates.
  */
-class ConfigReader() {
+class ConfigReader() extends Logging {
   /**
    * default construct read config in @USER_HOME/.autoplayer
    */
   var config: scala.xml.Node = _;
   var lists: List[PlayList] = _;
-
   /**
    * Get a list that should be played today.
    */
@@ -55,11 +56,13 @@ class ConfigReader() {
    * @param file
    */
   def reloadConfig(file: File): ConfigReader = {
+    info("reload config file : " + file.getAbsolutePath);
     lists = List();
     config = xml.XML.loadFile(file);
     val playLists = config \ Const.PATH_LIST;
     playLists.foreach(item => {
-      val dateTime = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").parse((item \ Const.ATTR_LIST_DATE).toString());
+      val dateTime = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").
+              parse((item \ Const.ATTR_LIST_DATE).toString());
       val songs = getSongList(item)
       lists ::= new PlayList(dateTime, songs)
     })
@@ -80,6 +83,7 @@ class ConfigReader() {
    * @param file
    */
   private def copyInitConfigFile(file: File) = {
+    info("Generate config file : " + file.getAbsolutePath);
     try {
       val in = ClassLoader.getSystemResourceAsStream("init" + file.getName());
       val out = new FileOutputStream(file);
@@ -92,8 +96,8 @@ class ConfigReader() {
       out.close();
       in.close();
     } catch {
-      case ex: FileNotFoundException => println("can't get initFile") //TODO
-      case ex: Exception => println("Copy initfile error")  //TODO
+      case ex: FileNotFoundException => //TODO
+      case ex: Exception =>  //TODO
     }
 
   }
@@ -107,6 +111,7 @@ class ConfigReader() {
   private def getUserHome(): String = {
     val userHome = System.getProperty("user.home");
     if (userHome.isEmpty) {
+      info("user.home==null");
       throw new IllegalStateException("user.home==null");
     }
     userHome
@@ -114,9 +119,10 @@ class ConfigReader() {
 
   private def getOrCreateConfigDirectory(userHome: String): File = {
     //Create config directory if not existing
-    val configDirectory = new File(new File(userHome), ".autoplay");
+    val configDirectory = new File(new File(userHome), Const.CONFIG_FILE_DIR);
     if (!configDirectory.exists()) {
       if (!configDirectory.mkdir()) {
+        info("Failed to create config directory");
         throw new IllegalStateException(configDirectory.toString());
       }
     }
@@ -125,11 +131,13 @@ class ConfigReader() {
 
   private def getOrCreateConfigfile(configDirectory: File): File = {
     //Create config file if not existing
-    val configFile = new File(configDirectory, "Configs.xml");
+    val configFile = new File(configDirectory, Const.CONFIG_FILE_NAME);
     if (!configFile.exists()) {
       if (!configFile.createNewFile()) {
+        info("Failed to create config file");
         throw new IllegalStateException(configFile.toString());
       }
+      info("Create config file : " + configFile.getAbsolutePath);
       copyInitConfigFile(configFile);
     }
     return configFile.getAbsoluteFile;
