@@ -13,5 +13,5 @@ import grizzled.slf4j.Logging
 class PlayList(date: Date, songs: List[Song]) extends Logging{
   def Date = date;
   def Songs = songs;
-  info("Create Play list which will played at :" +  date ) ;
+  info("Get playlist which will played at :" +  date ) ;
 }
