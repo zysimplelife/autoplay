@@ -71,11 +71,16 @@ class TestConfigReader extends FunSuite with BeforeAndAfterEachFunctions  {
     println(todaylist.last.Date)
     assert(!todaylist.isEmpty);
     assert(todaylist.last.Songs.length == 2)
-
-
+    config.delete();
   }
 
-
+  test("Get emplty today play list,if the config is correct,then getTodayPlaylist will emplty playlist") {
+    reader.reloadConfig();
+    var config = Utils.getConfigFile();
+    val todaylist = reader.getTodayPlayList();
+    assert(todaylist.isEmpty);
+    config.delete();
+  }
 
 
   /**************************************************************/

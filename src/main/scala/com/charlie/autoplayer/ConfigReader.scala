@@ -1,13 +1,13 @@
 package com.charlie.autoplayer
 
 import datamodel.{PlayList, Song}
-import java.io.{FileInputStream, FileOutputStream, File}
+import java.io.{FileNotFoundException, FileInputStream, FileOutputStream, File}
 import java.text.SimpleDateFormat
 import xml.NodeSeq
 import java.net.URL
 import java.util.Date
 
-object Const{
+object Const {
   def PATH_SONG = "song"
 
   def PATH_LIST = "playlist"
@@ -30,18 +30,18 @@ class ConfigReader() {
    */
   var config: scala.xml.Node = _;
   var lists: List[PlayList] = _;
+
   /**
    * Get a list that should be played today.
    */
-  def getTodayPlayList():List[PlayList] = {
+  def getTodayPlayList(): List[PlayList] = {
     val sf = new SimpleDateFormat("MM-dd");
     val now = sf.format(new Date());
-
-    val result = for (playlist <- lists) yield {
-      val listTime = sf.format(playlist.Date)
-      if (now.equals(listTime)) playlist
-    }
-    result.asInstanceOf[List[PlayList]]
+    val result = lists.filter(l=>{
+      val listTime = sf.format(l.Date)
+      now.equals(listTime);
+    })
+    result
   }
 
   def initConfigs(): File = {
@@ -69,7 +69,7 @@ class ConfigReader() {
   /**
    * reload config with default config file
    */
-  def reloadConfig(): ConfigReader= {
+  def reloadConfig(): ConfigReader = {
     reloadConfig(initConfigs())
     return this;
   }
@@ -80,12 +80,22 @@ class ConfigReader() {
    * @param file
    */
   private def copyInitConfigFile(file: File) = {
-    val initFile = ClassLoader.getSystemResource("init" + file.getName()).getFile();
-    val output = new FileOutputStream(file);
-    val input = new FileInputStream(initFile)
-    output getChannel() transferFrom(input getChannel, 0, Long.MaxValue);
-    output.close();
-    input.close();
+    try {
+      val in = ClassLoader.getSystemResourceAsStream("init" + file.getName());
+      val out = new FileOutputStream(file);
+
+      val buffer = new Array[Byte](1024)
+      Iterator.continually(in.read(buffer))
+        .takeWhile(_ != -1)
+        .foreach { out.write(buffer, 0 , _) }
+
+      out.close();
+      in.close();
+    } catch {
+      case ex: FileNotFoundException => println("can't get initFile") //TODO
+      case ex: Exception => println("Copy initfile error")  //TODO
+    }
+
   }
 
   private def getSongList(listTag: NodeSeq): List[Song] = {
@@ -115,7 +125,7 @@ class ConfigReader() {
 
   private def getOrCreateConfigfile(configDirectory: File): File = {
     //Create config file if not existing
-    val configFile = new File(configDirectory, "configs.xml");
+    val configFile = new File(configDirectory, "Configs.xml");
     if (!configFile.exists()) {
       if (!configFile.createNewFile()) {
         throw new IllegalStateException(configFile.toString());
