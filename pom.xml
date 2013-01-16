@@ -5,11 +5,6 @@
     <groupId>com.charlie</groupId>
     <artifactId>autoplay</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <modules>
-        <module>webgui</module>
-        <module>webgui</module>
-        <module>webgui</module>
-    </modules>
     <packaging>pom</packaging>
 
     <name>autoplay</name>

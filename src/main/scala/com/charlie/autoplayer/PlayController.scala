@@ -15,7 +15,9 @@ import java.lang.InterruptedException
 import grizzled.slf4j.Logging
 
 class PlayController extends Logging{
-  final val cmdPlayerPath = ClassLoader.getSystemResource("cmdmp3.exe").toURI();
+  final val cmdPlayerPath = System.getProperty("user.home") +
+                File.separator + ".autoplay" +
+                   File.separator +"cmdmp3.exe";
 
   final def errorCantFound(path: String) = "Can't found mp3 " + path
 
@@ -23,6 +25,7 @@ class PlayController extends Logging{
 
 
   def runPlayer(mp3List: List[Song]): Unit = {
+    debug("Going to play list by "+cmdPlayerPath)
     mp3List.foreach(song => {
       try {
         playAudioFile(song.Path);
